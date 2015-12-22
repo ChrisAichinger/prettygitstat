@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Pretty Git Stat</title>
+
+    <link rel="stylesheet" type="text/css" href="css/prettygitstat.css"/>
+    <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.min.css">
+    <script type="text/javascript" src="js/angular.min.js"></script>
+    <script type="text/javascript" src="js/ui-bootstrap-tpls-0.14.3.min.js"></script>
+    <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/prettygitstat.js"></script>
+  </head>
+
+  <body class="container-fluid" ng-app="gitStatApp">
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-8">
+        <h1>Petty Git Stat</h1>
+      </div>
+    </div>
+    <div class="row" ng-controller="StatViewerController">
+      <div class="col-md-1"></div>
+      <div class="col-md-8">
+        <h2>Top 10 Contributors</h2>
+        <table class="table">
+          <tr>
+            <th>Contributor</th>
+            <th># Lines</th>
+            <th>Percent</th>
+          </tr>
+          <tr ng-repeat="authorName in authorStats.authorNames | limitTo:10">
+            <td><span class="authorname"
+                      ng-attr-style="background-color: {{colors[$index % colors.length]}}"
+                >{{authorName}}</td>
+            <td>{{authorStats.authors[authorName].lines}}</td>
+            <td>{{authorStats.authors[authorName].percent | number:0}}</td>
+          </tr>
+        </table>
+
+
+        <h2>File Overview</h2>
+        <table class="table files-table">
+          <tr>
+            <th></th>
+            <th>Path</th>
+            <th>File Size</th>
+            <th>Contributors</th>
+          </tr>
+          <tr ng-repeat="path in pathList | filter:{enabled:true}"
+              ng-class="{ 'tr-file': (path.type == 'file'), 'tr-dir': (path.type != 'file') }">
+            <td ng-switch on="path.type">
+              <span ng-switch-when="file"><i class="fa fa-file"></i></span>
+              <span ng-switch-when="dir"><i class="fa fa-folder"></i></span>
+            </td>
+            <td class="path">{{path.path}}</td>
+            <td class="fsize">
+              <div class="fsize-container"
+                   uib-tooltip="{{path.stat.totalLines}} lines"
+                   tooltip-placement="bottom">
+                <div class="fsize-inner"
+                     ng-style="{ 'width': path.stat.percentOfMaxLines.toString() + '%' }"
+                     >&nbsp;</div>
+               </div>
+            </td>
+            <td uib-popover-template="'popoverTemplate.html'"
+                popover-trigger="mouseenter"
+                popover-placement="bottom">
+              <uib-progress animate='false' max='100.1'>
+                <uib-bar ng-repeat="author in path.stat.authorInfo"
+                         ng-attr-style="background-color: {{colors[$index % colors.length]}}"
+                         value="author.percent"
+                         >
+                  <span ng-hide="author.percent < 5">{{author.name}}</span>
+                </uib-bar>
+              </uib-progress>
+            </td>
+          </tr>
+        </table>
+        <script type="text/ng-template" id="popoverTemplate.html">
+          <div><table class="table-condensed">
+          <tr>
+          <th>Author<th># Lines<th>Percent
+          </tr>
+          <tr ng-repeat="author in path.stat.authorInfo" ng-show="author.lines">
+            <td><span class="authorname"
+                      ng-attr-style="background-color: {{colors[$index % colors.length]}}"
+                >{{author.name}}</td>
+            <td>{{author.lines}}</td>
+            <td>{{author.percent | number:0}}</td>
+          </tr>
+          </table></div>
+        </script>
+      </div>
+      <div class="col-md-2">
+        <div class="form-group">
+          <label for="excludes" class="control-label">Excludes</label>
+          <div>
+            <textarea id="excludes" name="excludes" class="form-control"
+                      ng-model="excludes" ng-model-options="{ updateOn: 'blur' }"
+                      rows="10"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+  </body>
+</html>
